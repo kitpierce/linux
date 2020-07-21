@@ -1,14 +1,16 @@
 #!/bin/bash
 sudo whoami > /dev/null || (echo "Failed 'sudo' authentication test" && return 1)
 
-DESIRED=("whois" "aptitude" "vim" "bash-completion" "htop" "iotop" "git-cola" "git-gui")
+DESIRED=("whois" "aptitude" "vim" "bash-completion" "htop" "iotop" "git-cola" "apt-file")
 NEEDED=()
+ADDED=()
 INSTALLED=()
 
-echo "Collecting list of currently installed packages (apt list --installed)"
-for PACKAGE in $(sudo apt list --installed | sed 's#\/.*$##' | grep -Ev '^(WARNING:|Listing\.\.\.|$)');do
+echo "Collecting list of currently installed packages (dpkg --list)"
+for PACKAGE in $(dpkg --list | grep -E '^ii' | awk '{print $2}');do
 	INSTALLED=( "${INSTALLED[@]}" "$PACKAGE" );
 done
+echo "Currently installed package count: '${#INSTALLED[@]}'"
 
 # To add an element
 #INSTALLED=( "${INSTALLED[@]}" "new_element1" "new_element2" "..." "new_elementN")
@@ -37,7 +39,15 @@ else
 		echo "Failed bulk installation, initiating per-package installation"
 		for NEED in "${NEEDED[@]}";do
 			echo "Installing individual package: '$NEED'"
-			sudo apt install $NEED -y || echo "Failed installation for package: '$NEED'"
+			sudo apt install $NEED -y && ADDED=( "${ADDED[@]}" "$NEED" ) || echo "Failed installation for package: '$NEED'"
 		done
 	)
+fi
+
+if [[ ${ADDED[*]} =~ "aptitude" ]]; then
+	echo "Updating cache for recently installed package manager: 'aptitude'"	
+	sudo aptitude update -y
+elif [[ ${ADDED[*]} =~ "apt-file" ]]; then
+	echo "Updating apt-file package cache"
+	sudo apt-file update --verbose
 fi
