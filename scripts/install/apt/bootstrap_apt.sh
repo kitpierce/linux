@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo whoami > /dev/null || (echo "Failed 'sudo' authentication test" && return 1)
 
-DESIRED=("whois" "aptitude" "vim" "bash-completion" "htop" "iotop" "git-cola" "apt-file")
+DESIRED=("curl" "whois" "aptitude" "vim" "bash-completion" "htop" "iotop" "git-cola" "apt-file")
 NEEDED=()
 ADDED=()
 INSTALLED=()
@@ -17,7 +17,7 @@ echo "Currently installed package count: '${#INSTALLED[@]}'"
 
 echo "Testing whether desired packages are currently installed"
 for WANT in "${DESIRED[@]}";do
-	if [[ ${INSTALLED[*]} =~ "$WANT" ]]; then
+	if [[ ${INSTALLED[*]} =~ ($|[[:space:]])"$WANT"($|[[:space:]]) ]]; then
 		echo -e "\tPackage already installed: '$WANT'"
 	else
 		if [[ $(apt-cache search --names-only "$WANT") ]]; then

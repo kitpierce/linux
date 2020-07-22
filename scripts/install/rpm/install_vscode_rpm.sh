@@ -40,3 +40,5 @@ function install_vscode_rpm {
         return 1
     fi
 }
+
+install_vscode_rpm

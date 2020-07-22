@@ -56,3 +56,5 @@ function install_vscode_apt {
         return 1
     )
 }
+
+install_vscode_apt
