@@ -326,7 +326,7 @@ function grc_alias_all {
 			printf "[${FUNCNAME[0]}] \tAdding commented alias for command: '$file'\n"
 			ALIAS_STRING="\t#alias $file='colourify $file'\n"
 		fi
-			printf "[${FUNCNAME[0]}] $ALIAS_STRING" | sudo tee --append "$GRCTMPBASHRC" > /dev/null
+			printf "$ALIAS_STRING" | sudo tee --append "$GRCTMPBASHRC" > /dev/null
 	done
 	IFS="$OIFS"
 
