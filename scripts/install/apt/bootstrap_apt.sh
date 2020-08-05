@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo whoami > /dev/null || (echo "Failed 'sudo' authentication test" && return 1)
 
-DESIRED=("curl" "whois" "aptitude" "vim" "bash-completion" "htop" "iotop" "git-cola" "apt-file")
+DESIRED=("curl" "whois" "aptitude" "vim" "bash-completion" "htop" "iotop" "git-cola" "apt-file" "tree")
 NEEDED=()
 ADDED=()
 INSTALLED=()
