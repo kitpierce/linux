@@ -36,14 +36,18 @@ function test_command () {
 }
 
 function update_locate {
-	printf "[${FUNCNAME[0]}] Updating locatedb database...\n"
-	if [ ! $(command -v locate) ];then
-		printf "[${FUNCNAME[0]}] Required command 'locate' not found...\n"
-		return 1
+	if [ $(command -v locate) ];then
+		printf "[${FUNCNAME[0]}] Found required command: 'locate'\n"
+	elif [ ! $(command -v mlocate) ];then
+		printf "[${FUNCNAME[0]}] Found required command: 'mlocate'\n"
 	else
-		printf "[${FUNCNAME[0]}] Invoking updatedb...\n"
-		sudo updatedb --prunepaths=/mnt/*
+		printf "[${FUNCNAME[0]}] Required command 'locate' or 'mlocate' not found...\n"
+		return 1
 	fi
+
+	printf "[${FUNCNAME[0]}] Updating locatedb database...\n"
+	sudo updatedb --prunepaths=/mnt/* 2>&1 | grep -vi 'Permission denied'
+	printf "[${FUNCNAME[0]}] Finished updatedb...\n"
 }
 
 function dot_source {
@@ -175,14 +179,6 @@ function grc_source {
 
 	printf "[${FUNCNAME[0]}] Begin sourcing GRC's bashrc file...\n"
 	GRCCMD=$(command -v grc)
-	GRCBASHRC=$(locate grc.bashrc | grep -E -iv '(^/mnt/|/timeshift/|/git/)' | grep -i grc.bashrc$)
-
-	if [[ "$GRCBASHRC" == "" ]];then
-		GRCBASHRC="/etc/profile.d/grc.sh"
-		printf "[${FUNCNAME[0]}] Locate found no grc config file - using default: '$GRCBASHRC'...\n"
-	else
-		printf "[${FUNCNAME[0]}] Locate returned grc config file: '$GRCBASHRC'\n"
-	fi
 
 	if [ ! $GRCCMD ];then
 		printf "[${FUNCNAME[0]}] GRC command not found!\n"
@@ -197,6 +193,20 @@ function grc_source {
 		printf "[${FUNCNAME[0]}] GRC command '$(echo $GRCCMD)' exists and is executable\n"
 	fi
 
+	GRCBASHRC=$(locate grc.bashrc | grep -E -iv '(^/mnt/|/timeshift/|/git/)' | grep -i grc.bashrc$)
+	if [[ "$GRCBASHRC" == "" ]];then
+		GRCBASHRC="/etc/profile.d/grc.sh"
+		printf "[${FUNCNAME[0]}] Locate found no grc config file - using default: '$GRCBASHRC'...\n"
+		if [[ ! -f "$GRCBASHRC" ]];then
+			printf "[${FUNCNAME[0]}] Creating user-specific GRC bashrc file: '$GRCBASHRC'...\n"
+			touch "$GRCBASHRC"
+		else
+			printf "[${FUNCNAME[0]}] Found existing user-specific GRC bashrc file: '$GRCBASHRC'\n"
+		fi
+	else
+		printf "[${FUNCNAME[0]}] Locate returned grc config file: '$GRCBASHRC'\n"
+	fi
+
 	printf "[${FUNCNAME[0]}] Begin sourcing GRC config: '$GRCBASHRC'\n"
 	dot_source "$GRCBASHRC"
 
@@ -207,7 +217,7 @@ function grc_source {
 		printf "[${FUNCNAME[0]}] Adding GRC definitions to user's .bashrc file: '$USERBASHRC'\n"
 		printf "\n\n# Source GRC colorization file\nif [[ -f "$GRCBASHRC" ]]; then\n\t$TESTSTRING\nfi\n" >> $USERBASHRC
 	else
-		echo "[${FUNCNAME[0]}] User profile config '$USERBASHRC' already contains reference to GRC config: '$GRCBASHRC'";
+		echo "[${FUNCNAME[0]}] User profile already contains reference to GRC: '$GRCBASHRC'";
 	fi
 
 	# Source .bashrc to apply changes
@@ -268,7 +278,6 @@ function test_grc_environment {
 	GRCCONFDIR=$(echo "$GRCBIN" | sed "s%/bin/%/share/%g")
 	GRCBASHRC=$(locate grc.bashrc | grep -Eiv "$(echo $EXCLUDE)" | grep -Ei 'grc.bashrc$')
 }
-
 
 function grc_alias_all {
 	printf "[${FUNCNAME[0]}] Begin adding GRC aliases...\n"
