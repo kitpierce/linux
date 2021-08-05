@@ -25,3 +25,9 @@ function import_tput () {
     REVERSE=$(tput smso)
     UNDERLINE=$(tput smul)
 }
+
+### To use, dot-source this file, invoke the 'import_tput'
+### function), then use the variable names within printf statements.
+#
+# . ./import_tput.sh && import_tput
+# printf "This is ${BOLD_LIME}bold text....${BLINK}and blinking...${REVERSE}and reversed...${CLEAR}and cleared...\n"
